@@ -1,0 +1,18 @@
+.venv/
+venv/
+.history/GaitEnv/
+.history/
+.vscode/
+.git
+
+# Large dataset files
+src/Datasets/*.csv
+src/Datasets/*.npy
+src/Datasets/
+*.csv
+*.npy
+
+# Large data files
+**/*_data.csv
+**/merged_data.csv
+**/large_data*
