@@ -1,0 +1,47 @@
+# Dockerfile.baked
+# Builds a Docker image that includes the model artifact inside the image.
+# Use this if you want to deploy a prebuilt image to Render (Deploy from a container registry)
+# so the container doesn't need to download the model at startup.
+
+FROM python:3.11-slim
+
+LABEL org.opencontainers.image.title="gaitlab"
+LABEL org.opencontainers.image.description="GaitLab FastAPI model server (baked model)"
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    git \
+    ffmpeg \
+    libgl1 \
+    libglib2.0-0 \
+    libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy requirements and install
+COPY requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip
+RUN pip install --upgrade setuptools wheel
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy app code
+COPY . /app
+
+# Copy a local models directory into the image (if present). This expects you
+# to have placed the model at ./models/gait_predict_model_v_1.pth before building.
+RUN if [ -d "/app/models" ]; then echo "Copying models into image"; else echo "No models dir found in build context"; fi
+
+# Defaults
+ENV PORT=8000
+ENV MODEL_PATH=/app/models/gait_predict_model_v_1.pth
+
+EXPOSE 8000
+
+# Start uvicorn directly; Render (or whichever host) should bind PORT into the container.
+CMD ["/bin/bash", "-lc", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
