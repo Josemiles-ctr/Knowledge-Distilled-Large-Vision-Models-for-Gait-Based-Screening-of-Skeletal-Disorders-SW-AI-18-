@@ -1,11 +1,15 @@
 services:
   - type: web
-    name: clinical-enhanced-api
+    name: gaitlab-api
     env: python
     region: frankfurt
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app:app --host 0.0.0.0 --port 10000
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
       - key: PORT
-        value: 10000
+        value: 8000
+    healthCheckPath: /docs
+    autoDeploy: true
