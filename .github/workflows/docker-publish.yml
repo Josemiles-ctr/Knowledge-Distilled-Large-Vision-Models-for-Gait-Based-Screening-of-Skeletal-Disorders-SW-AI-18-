@@ -14,6 +14,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check secrets are configured
+        run: |
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "❌ ERROR: DOCKERHUB_USERNAME secret not set!"
+            echo "Go to: https://github.com/josemiles/gaitanalysis/settings/secrets/actions"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "❌ ERROR: DOCKERHUB_TOKEN secret not set!"
+            echo "Go to: https://github.com/josemiles/gaitanalysis/settings/secrets/actions"
+            exit 1
+          fi
+          echo "✅ Secrets are configured"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
