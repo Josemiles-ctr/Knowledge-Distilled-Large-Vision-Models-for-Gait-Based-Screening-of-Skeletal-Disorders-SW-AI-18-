@@ -1,20 +1,47 @@
-venv
-envir
-.env
+# Git
+.git/
+.gitignore
+.github/
+
+# Virtual environments
+venv/
+envir/
+.venv/
+env/
+
+# Python cache and artifacts
+__pycache__/
 *.pyc
-__pycache__
-.git
-.github
-node_modules
-frontend/node_modules
-dist
-build
-*.log
-*.sqlite3
-/.venv
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
 .DS_Store
-tests
-data
-cache
-*.egg-info
-/.tox
+
+# Environment and config
+.env
+.env.*
+
+# Logs
+*.log
+
+# CI/CD and testing
+tests/
+.pytest_cache/
+.tox/
+
+# Misc
+*.sqlite3
+data/
+cache/
+node_modules/
+*.md
+Procfile
+runtime.txt
