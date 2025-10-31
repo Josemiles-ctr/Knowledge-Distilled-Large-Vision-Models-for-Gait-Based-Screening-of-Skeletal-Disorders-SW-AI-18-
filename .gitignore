@@ -1,0 +1,44 @@
+# Virtual environments
+envir/
+venv/
+env/
+.venv/
+
+# IDE and Editor
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+/tmp/
+*.tmp
+
+# IDE caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
