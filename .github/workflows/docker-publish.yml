@@ -25,6 +25,30 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Debug: show runner and docker info
+        run: |
+          echo "=== runner info ==="
+          uname -a || true
+          echo "=== disk ==="
+          df -h || true
+          echo "=== docker versions ==="
+          docker --version || true
+          docker buildx version || true
+
+      - name: Debug: list repository files
+        run: |
+          echo '=== workspace root ==='
+          ls -la
+          echo '=== app dir ==='
+          ls -la app || true
+          echo '=== scripts dir ==='
+          ls -la scripts || true
+
+      - name: Debug: docker build (no push, plain output)
+        run: |
+          echo 'Building with plain progress to expose errors'
+          docker build --progress=plain -f ./Dockerfile -t debug-local:latest .
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
