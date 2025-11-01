@@ -18,12 +18,12 @@ jobs:
         run: |
           if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
             echo "❌ ERROR: DOCKERHUB_USERNAME secret not set!"
-            echo "Go to: https://github.com/josemiles/gaitanalysis/settings/secrets/actions"
+            echo "Go to: https://github.com/josemiles/gaitanalysissystem/settings/secrets/actions"
             exit 1
           fi
           if [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
             echo "❌ ERROR: DOCKERHUB_TOKEN secret not set!"
-            echo "Go to: https://github.com/josemiles/gaitanalysis/settings/secrets/actions"
+            echo "Go to: https://github.com/josemiles/gaitanalysissystem/settings/secrets/actions"
             exit 1
           fi
           echo "✅ Secrets are configured"
@@ -44,7 +44,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            docker.io/josemiles/gaitanalysis:latest
-            docker.io/josemiles/gaitanalysis:${{ github.sha }}
+            docker.io/josemiles/gaitanalysissystem:latest
+            docker.io/josemiles/gaitanalysissystem:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
