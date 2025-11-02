@@ -16,7 +16,10 @@ WORKDIR /app
 
 # Copy and install requirements
 COPY requirements.txt .
+# Install CPU-only PyTorch wheels first (prevents pulling CUDA/NVIDIA wheels)
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+        torch==2.5.1 torchvision==0.20.1 || true && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy everything
