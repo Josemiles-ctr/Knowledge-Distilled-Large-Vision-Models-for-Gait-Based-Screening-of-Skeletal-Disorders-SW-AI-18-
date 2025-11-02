@@ -4,10 +4,11 @@ from fastapi.responses import JSONResponse
 import torch
 import os
 import logging
+import gc
 from utils.video_utils import process_video
 from utils.clinical_utils import ClinicalEmbedder
 from models.load_model import load_student_model
-from app.config import DEVICE, NUM_FRAMES, FRAME_SIZE
+from app.config import DEVICE, NUM_FRAMES, FRAME_SIZE, CHUNK_SIZE
 from models.class_mapping import class_mapping, clinical_descriptions
 
 # Set up logging
@@ -77,11 +78,12 @@ async def predict(video: UploadFile, clinical_condition: str = Form(...)):
             raise HTTPException(status_code=500, detail="Error processing video upload")
 
         try:
-            # Preprocess video
+            # Preprocess video with chunked processing for memory efficiency
             video_tensor = process_video(
                 video_path, 
                 num_frames=NUM_FRAMES, 
-                frame_size=FRAME_SIZE
+                frame_size=FRAME_SIZE,
+                chunk_size=CHUNK_SIZE
             ).to(DEVICE)
 
             # Get clinical embedding from user's description
@@ -94,20 +96,32 @@ async def predict(video: UploadFile, clinical_condition: str = Form(...)):
                 pred_idx = torch.argmax(probs, dim=1).item()
                 pred_class = list(class_mapping.keys())[pred_idx]
 
-            # Clean up
-            if os.path.exists(video_path):
-                os.remove(video_path)
-
             # Prepare response
-            return {
+            response = {
                 "predicted_class": pred_class,
                 "probabilities": {
                     k: float(probs[0, v]) for k, v in class_mapping.items()
                 }
             }
+            
+            # Aggressive memory cleanup
+            del video_tensor, clinical_embed, logits, probs
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            
+            # Clean up temp file
+            if os.path.exists(video_path):
+                os.remove(video_path)
+            
+            return response
 
         except Exception as e:
             logger.error(f"Error during inference: {str(e)}")
+            # Cleanup on error
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             raise HTTPException(status_code=500, detail="Error during analysis")
 
     except HTTPException:
