@@ -1,6 +1,15 @@
 import os
 from pathlib import Path
-import torch
+
+# Import torch lazily and defensively: if torch isn't available or its import
+# raises an error during build-time checks, we don't want the whole module
+# import to fail and leave top-level names (like CHUNK_SIZE) undefined.
+try:
+    import torch
+    _TORCH_AVAILABLE = True
+except Exception:
+    torch = None
+    _TORCH_AVAILABLE = False
 
 
 class Settings:
@@ -22,7 +31,11 @@ class Settings:
     MODEL_PATH: str = os.getenv('MODEL_PATH', 'models/gait_predict_model_v_1.pth')
     NUM_FRAMES: int = int(os.getenv('NUM_FRAMES', 16))
     FRAME_SIZE: int = int(os.getenv('FRAME_SIZE', 224))
-    DEVICE: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # Determine device without crashing if torch isn't importable or fails.
+    if _TORCH_AVAILABLE:
+        DEVICE: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+    else:
+        DEVICE: str = os.getenv('DEVICE', 'cpu')
 
     # CORS Configuration: accept comma separated values in .env
     CORS_ORIGINS = [s.strip() for s in os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',') if s.strip()]
@@ -50,6 +63,13 @@ DEVICE = settings.DEVICE
 DISABLE_GPU = settings.DISABLE_GPU
 NUM_FRAMES = settings.NUM_FRAMES
 FRAME_SIZE = settings.FRAME_SIZE
+CHUNK_SIZE = settings.CHUNK_SIZE
+TIMEOUT = settings.TIMEOUT
+WORKERS = settings.WORKERS
+PORT = settings.PORT
+HOST = settings.HOST
+TEMP_UPLOAD_DIR = settings.TEMP_UPLOAD_DIR
+MAX_UPLOAD_SIZE = settings.MAX_UPLOAD_SIZE
 CORS_ORIGINS = settings.CORS_ORIGINS
 CORS_METHODS = settings.CORS_METHODS
 CORS_HEADERS = settings.CORS_HEADERS
