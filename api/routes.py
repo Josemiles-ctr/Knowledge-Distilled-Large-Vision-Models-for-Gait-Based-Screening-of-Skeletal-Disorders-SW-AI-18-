@@ -206,3 +206,23 @@ async def readiness_check():
         return JSONResponse({"ready": True})
     else:
         return JSONResponse({"ready": False, "reason": "model not loaded"}, status_code=503)
+
+
+@router.post("/predict-mock")
+async def predict_mock(video: UploadFile, clinical_condition: str = Form(...)):
+    """Mock prediction endpoint for testing (returns hardcoded response)."""
+    logger.info(f"Mock prediction called with video: {video.filename}, condition: {clinical_condition}")
+    return {
+        "predicted_class": "KOA_Mild",
+        "probabilities": {
+            "Normal": 0.05,
+            "KOA_Early": 0.1,
+            "KOA_Mild": 0.6,
+            "KOA_Severe": 0.15,
+            "PD_Early": 0.03,
+            "PD_Mild": 0.04,
+            "PD_Severe": 0.01,
+            "Disabled_Assistive": 0.01,
+            "Disabled_NonAssistive": 0.01
+        }
+    }
