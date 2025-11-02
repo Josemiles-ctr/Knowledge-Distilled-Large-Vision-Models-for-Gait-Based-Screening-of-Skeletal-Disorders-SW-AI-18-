@@ -177,6 +177,22 @@ async def get_conditions():
     })
 
 
+@router.get("/test-model-load")
+async def test_model_load():
+    """Test endpoint: attempt to load model and return status."""
+    try:
+        logger.info("Test: Attempting to load model...")
+        _ensure_model_loaded()
+        logger.info("Test: Model loaded successfully")
+        return JSONResponse({"status": "model loaded", "ready": MODEL_READY})
+    except Exception as e:
+        logger.error(f"Test: Model load failed: {str(e)}", exc_info=True)
+        return JSONResponse(
+            {"status": "model load failed", "error": str(e)},
+            status_code=500
+        )
+
+
 @router.get("/health")
 async def health_check():
     """Simple health check to indicate app is running."""
