@@ -1,4 +1,4 @@
-# Production Dockerfile - Optimized for Render & Docker Hub
+# Production Dockerfile - Optimized for Render
 # Multi-stage build to minimize image size
 # Base: Python 3.11-slim (~129 MB)
 
@@ -27,8 +27,7 @@ RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 # ============================================================================
-# Runtime Stage - Minimal final image
-
+# Runtime Stage - Much smaller final image
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

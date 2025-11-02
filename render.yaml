@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: gaitlab-api
+    runtime: docker
+    plan: standard
+    
+    # Build configuration
+    build:
+      dockerfile: Dockerfile
+      context: .
+      
+    # Port configuration
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+      
+    # Health check
+    healthCheckPath: /health
+    
+    # Resource settings
+    # - Render will auto-scale based on traffic
+    # - Default: 0.5 CPU, 512 MB RAM for free tier
+    # - Standard: 1 CPU, 2.5 GB RAM (upgrade to this for better performance)
+    
+    # Build timeout (in seconds) - default is 1800 (30 min)
+    buildTimeout: 1800

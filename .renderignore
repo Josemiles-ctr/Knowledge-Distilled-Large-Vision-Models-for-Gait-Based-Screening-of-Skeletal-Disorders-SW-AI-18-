@@ -1,0 +1,70 @@
+# Render Build Ignore List
+# Files that shouldn't be included in the Docker build context for Render
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments (should not be in image)
+env/
+venv/
+ENV/
+envir/
+.venv
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files (keep only in GitHub Secrets)
+.env
+.env.local
+.env.*.local
+
+# Documentation (not needed in image)
+*.md
+README.md
+RENDER_DEPLOYMENT.md
+CLEANUP_REPORT.md
+START_HERE.md
+
+# Other
+.github
+.dockerignore
+.renderignore
+node_modules/
+.npm
+*.log
+logs/
+tmp/
+temp/
+
+# Development files
+uvicorn.log
+test_video.mp4
+create_test_video.py
+test_endpoint.py
+
+# Temporary
+.cache/
+.tmp/
+*.tmp
