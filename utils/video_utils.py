@@ -1,9 +1,19 @@
-import torch
-import cv2
-import numpy as np
-from decord import VideoReader, cpu
-import gc
 import logging
+
+try:
+    import torch
+    import cv2
+    import numpy as np
+    from decord import VideoReader, cpu
+    _VIDEO_DEPS_AVAILABLE = True
+except ImportError:
+    torch = None
+    cv2 = None
+    np = None
+    VideoReader = None
+    _VIDEO_DEPS_AVAILABLE = False
+
+import gc
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +31,9 @@ def process_video(video_path, num_frames=16, frame_size=224, chunk_size=4):
     Returns:
         torch.Tensor: Normalized video tensor (1, C, T, H, W)
     """
+    if not _VIDEO_DEPS_AVAILABLE:
+        raise RuntimeError("Video dependencies (torch, cv2, numpy, decord) are required")
+    
     vr = VideoReader(video_path, ctx=cpu(0))
     total_frames = len(vr)
     

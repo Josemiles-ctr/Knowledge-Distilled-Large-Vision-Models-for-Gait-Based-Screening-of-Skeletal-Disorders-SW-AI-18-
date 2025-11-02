@@ -1,7 +1,15 @@
-import torch
+import logging
+
+# Defensive torch import
+try:
+    import torch
+    _TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    _TORCH_AVAILABLE = False
+
 from .student_model import ClinicalEnhancedStudent
 from app.config import MODEL_PATH, DEVICE, DISABLE_GPU
-import logging
 
 logger = logging.getLogger(__name__)
 

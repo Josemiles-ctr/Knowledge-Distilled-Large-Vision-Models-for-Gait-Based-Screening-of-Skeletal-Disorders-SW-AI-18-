@@ -1,8 +1,18 @@
-import torch
-from transformers import AutoTokenizer, AutoModel
+try:
+    import torch
+    from transformers import AutoTokenizer, AutoModel
+    _TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    _TRANSFORMERS_AVAILABLE = False
+    torch = None
+    AutoTokenizer = None
+    AutoModel = None
 
 class ClinicalEmbedder:
     def __init__(self, model_name="microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract"):
+        if not _TRANSFORMERS_AVAILABLE:
+            raise RuntimeError("Transformers and PyTorch are required for ClinicalEmbedder")
+        
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
         self.model.eval()

@@ -1,9 +1,19 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    _TORCH_AVAILABLE = True
+except ImportError:
+    _TORCH_AVAILABLE = False
+    torch = None
+    nn = None
+    F = None
 
 class ClinicalEnhancedStudent(nn.Module):
     def __init__(self, num_classes=9, clinical_dim=768):
+        if not _TORCH_AVAILABLE:
+            raise RuntimeError("PyTorch is required to use ClinicalEnhancedStudent")
+        
         super().__init__()
         self.visual_encoder = nn.Sequential(
             nn.Conv3d(3, 16, kernel_size=(3,3,3), padding=1),

@@ -1,10 +1,18 @@
 from typing import Dict, Optional
 from fastapi import APIRouter, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
-import torch
 import os
 import logging
 import gc
+
+# Lazy imports: defer heavy dependencies (torch, transformers) until actually needed
+try:
+    import torch
+    _TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    _TORCH_AVAILABLE = False
+
 from utils.video_utils import process_video
 from utils.clinical_utils import ClinicalEmbedder
 from models.load_model import load_student_model
@@ -18,18 +26,26 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Initialize model and embedder (set MODEL_READY flag)
+# Deferred to first-use pattern: don't initialize at import time to allow
+# the module to be imported during build-time checks without expensive model loads.
 MODEL_READY = False
 embedder = None
 model = None
-try:
-    embedder = ClinicalEmbedder()
-    model = load_student_model(num_classes=len(class_mapping))
-    MODEL_READY = True
-    logger.info("Model and embedder initialized successfully")
-except Exception as e:
-    MODEL_READY = False
-    logger.error(f"Error initializing model: {str(e)}")
-    # don't re-raise here so the app can still start and report readiness
+
+def _ensure_model_loaded():
+    """Lazy-load model and embedder on first use."""
+    global MODEL_READY, embedder, model
+    if MODEL_READY or (embedder is not None and model is not None):
+        return
+    try:
+        embedder = ClinicalEmbedder()
+        model = load_student_model(num_classes=len(class_mapping))
+        MODEL_READY = True
+        logger.info("Model and embedder initialized successfully")
+    except Exception as e:
+        MODEL_READY = False
+        logger.error(f"Error initializing model: {str(e)}")
+        raise
 
 @router.post("/predict", response_model=Dict[str, Optional[Dict[str, float] | str]])
 async def predict(video: UploadFile, clinical_condition: str = Form(...)):
@@ -42,6 +58,9 @@ async def predict(video: UploadFile, clinical_condition: str = Form(...)):
         Dictionary containing prediction results and probabilities
     """
     try:
+        # Ensure model is loaded on first use
+        _ensure_model_loaded()
+        
         # Ensure model is ready
         if not MODEL_READY:
             raise HTTPException(status_code=503, detail="Model not ready")
