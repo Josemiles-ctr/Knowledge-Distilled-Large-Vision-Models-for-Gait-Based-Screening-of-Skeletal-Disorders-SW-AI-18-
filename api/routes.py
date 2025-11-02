@@ -100,6 +100,7 @@ async def predict(video: UploadFile, clinical_condition: str = Form(...)):
             raise HTTPException(status_code=500, detail="Error processing video upload")
 
         try:
+            logger.info("Processing video...")
             # Preprocess video with chunked processing for memory efficiency
             video_tensor = process_video(
                 video_path, 
@@ -107,16 +108,22 @@ async def predict(video: UploadFile, clinical_condition: str = Form(...)):
                 frame_size=FRAME_SIZE,
                 chunk_size=CHUNK_SIZE
             ).to(DEVICE)
+            logger.info(f"Video tensor shape: {video_tensor.shape}")
 
+            logger.info("Generating clinical embedding...")
             # Get clinical embedding from user's description
             clinical_embed = embedder.get_embedding(clinical_condition).to(DEVICE)
+            logger.info(f"Clinical embedding shape: {clinical_embed.shape}")
 
+            logger.info("Running inference...")
             # Run inference
             with torch.no_grad():
                 logits = model(video_tensor, clinical_embed)
                 probs = torch.softmax(logits, dim=1)
                 pred_idx = torch.argmax(probs, dim=1).item()
                 pred_class = list(class_mapping.keys())[pred_idx]
+            
+            logger.info(f"Prediction: {pred_class}")
 
             # Prepare response
             response = {
@@ -138,13 +145,19 @@ async def predict(video: UploadFile, clinical_condition: str = Form(...)):
             
             return response
 
+        except MemoryError as e:
+            logger.error(f"Memory error during inference: {str(e)}", exc_info=True)
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            raise HTTPException(status_code=500, detail="Insufficient memory for prediction")
         except Exception as e:
-            logger.error(f"Error during inference: {str(e)}")
+            logger.error(f"Error during inference: {str(e)}", exc_info=True)
             # Cleanup on error
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-            raise HTTPException(status_code=500, detail="Error during analysis")
+            raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
 
     except HTTPException:
         raise

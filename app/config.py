@@ -25,7 +25,7 @@ class Settings:
     WORKERS: int = int(os.getenv('WORKERS', 1))  # Reduced from 8 to save memory
     TIMEOUT: int = int(os.getenv('TIMEOUT', 300))
     DISABLE_GPU: bool = os.getenv('DISABLE_GPU', 'true').lower() == 'true'  # CPU-first by default
-    CHUNK_SIZE: int = int(os.getenv('CHUNK_SIZE', 4))  # Process video frames in chunks
+    CHUNK_SIZE: int = int(os.getenv('CHUNK_SIZE', 2))  # Process video frames in small chunks for low-memory systems
 
     # Model Configuration
     MODEL_PATH: str = os.getenv('MODEL_PATH', 'models/gait_predict_model_v_1.pth')
