@@ -1,0 +1,69 @@
+# Crane Cloud Configuration (Optional)
+# This file is for reference/documentation only
+# Crane Cloud deployment is typically done via web dashboard or CLI
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gaitlab-api
+  labels:
+    app: gaitlab-api
+spec:
+  containers:
+  - name: gaitlab-api
+    image: docker.io/josemiles/gaitanalysis:latest
+    ports:
+    - containerPort: 8000
+    env:
+    - name: PORT
+      value: "8000"
+    - name: CORS_ORIGINS
+      value: "https://gait-ui.vercel.app"
+    - name: PYTHONUNBUFFERED
+      value: "1"
+    - name: PYTHONDONTWRITEBYTECODE
+      value: "1"
+    
+    # Resource limits
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    
+    # Health check
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8000
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 3
+    
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: 8000
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gaitlab-api-service
+  labels:
+    app: gaitlab-api
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+  selector:
+    app: gaitlab-api
