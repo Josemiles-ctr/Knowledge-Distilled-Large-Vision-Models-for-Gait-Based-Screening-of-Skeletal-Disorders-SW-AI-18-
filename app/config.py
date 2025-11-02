@@ -29,7 +29,7 @@ class Settings:
 
     # Model Configuration
     MODEL_PATH: str = os.getenv('MODEL_PATH', 'models/gait_predict_model_v_1.pth')
-    NUM_FRAMES: int = int(os.getenv('NUM_FRAMES', 16))
+    NUM_FRAMES: int = int(os.getenv('NUM_FRAMES', 8))  # Reduced from 16 to 8 for faster processing
     FRAME_SIZE: int = int(os.getenv('FRAME_SIZE', 224))
     # Determine device without crashing if torch isn't importable or fails.
     if _TORCH_AVAILABLE:

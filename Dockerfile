@@ -29,15 +29,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Copy application code
 COPY . /app/
 
-# Pre-download HuggingFace model to avoid long startup times
-# (BiomedNLP-PubMedBERT is ~400MB, downloaded once at build time)
-RUN python -c "from transformers import AutoTokenizer, AutoModel; \
-    print('Downloading compact sentence-transformer model...'); \
-    AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2'); \
-    AutoModel.from_pretrained('sentence-transformers/all-MiniLM-L6-v2'); \
-    print('✓ Small HuggingFace model cached successfully')"
-
-# Verify critical imports work
+# Verify critical imports work (no transformer download needed - using hash-based embeddings)
 RUN python -c "from app.config import DEVICE, NUM_FRAMES, FRAME_SIZE, CHUNK_SIZE, MODEL_PATH, DISABLE_GPU; print('✓ All config exports loaded successfully')" && \
     python -c "from api.routes import router; print('✓ Router imported successfully')" && \
     python -c "from models.load_model import load_student_model; print('✓ Model loader imported successfully')"
