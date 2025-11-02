@@ -19,21 +19,23 @@ def _mean_pooling(model_output, attention_mask):
 
 
 class ClinicalEmbedder:
-    """Lightweight clinical text embedder using sentence-transformers.
+    """Lightweight clinical text embedder.
     
-    Uses a compact sentence-transformer model by default to reduce memory usage
-    and speed up startup on low-memory hosts (Render free tier ~512MiB RAM).
+    Uses a compact sentence-transformer model (all-MiniLM-L6-v2) by default.
+    Embedding dimension is 384.
     """
-    def __init__(self, model_name="sentence-transformers/all-MiniLM-L6-v2"):
+    def __init__(self, model_name="sentence-transformers/all-MiniLM-L6-v2", embedding_dim=384):
         if not _TRANSFORMERS_AVAILABLE:
             raise RuntimeError("Transformers and PyTorch are required for ClinicalEmbedder")
-
+        
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
         self.model.to("cpu")
         self.model.eval()
+        self.embedding_dim = embedding_dim
 
     def get_embedding(self, text):
+        """Get embedding for text. Returns tensor of shape (1, embedding_dim)."""
         inputs = self.tokenizer(
             text,
             return_tensors="pt",
@@ -43,7 +45,9 @@ class ClinicalEmbedder:
         )
         with torch.no_grad():
             outputs = self.model(**inputs)
+        # Mean pooling
         pooled = _mean_pooling(outputs, inputs.get("attention_mask"))
         return pooled
+
 
 
