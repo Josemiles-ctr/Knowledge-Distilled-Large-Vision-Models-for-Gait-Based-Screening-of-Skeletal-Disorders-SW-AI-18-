@@ -1,55 +1,36 @@
-# Production Dockerfile - Optimized for Render & Docker Hub
-# Multi-stage build to minimize image size
+# Production Dockerfile - Simplified for Render
+# Uses Python 3.11-slim base and installs dependencies directly
 # Base: Python 3.11-slim (~129 MB)
-
-FROM python:3.11-slim as builder
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-# Install system build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create a virtual environment in the builder
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy requirements and install to venv
-COPY requirements.txt .
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt
-
-# ============================================================================
-# Runtime Stage - Minimal final image
 
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/opt/venv/bin:$PATH" \
     PORT=8000 \
     MODEL_PATH=/app/models/gait_predict_model_v_1.pth
 
-# Install only runtime system dependencies (no build tools)
+# Install system dependencies AND build tools (pip needs them for wheels)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
     ffmpeg \
     libgl1 \
     libglib2.0-0 \
     libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual environment from builder
-COPY --from=builder /opt/venv /opt/venv
+# Upgrade pip first
+RUN pip install --upgrade pip setuptools wheel
 
 # Set working directory
 WORKDIR /app
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies directly (not in venv, which can cause PATH issues)
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . /app
