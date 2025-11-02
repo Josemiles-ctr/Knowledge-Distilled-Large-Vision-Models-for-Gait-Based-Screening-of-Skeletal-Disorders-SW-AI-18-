@@ -32,6 +32,5 @@ jobs:
           tags: |
             docker.io/josemiles/gaitanalysis:latest
             docker.io/josemiles/gaitanalysis:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
           provenance: false
