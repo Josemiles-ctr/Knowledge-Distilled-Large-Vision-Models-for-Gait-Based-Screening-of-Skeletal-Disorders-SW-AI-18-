@@ -47,6 +47,7 @@ if not os.path.isabs(settings.MODEL_PATH):
 # Backwards-compatible top-level names used by other modules
 MODEL_PATH = settings.MODEL_PATH
 DEVICE = settings.DEVICE
+DISABLE_GPU = settings.DISABLE_GPU
 NUM_FRAMES = settings.NUM_FRAMES
 FRAME_SIZE = settings.FRAME_SIZE
 CORS_ORIGINS = settings.CORS_ORIGINS
