@@ -22,15 +22,15 @@ class Settings:
     # Server Configuration
     PORT: int = int(os.getenv('PORT', 8000))
     HOST: str = os.getenv('HOST', '0.0.0.0')
-    WORKERS: int = int(os.getenv('WORKERS', 1))  # Reduced from 8 to save memory
-    TIMEOUT: int = int(os.getenv('TIMEOUT', 300))
-    DISABLE_GPU: bool = os.getenv('DISABLE_GPU', 'true').lower() == 'true'  # CPU-first by default
-    CHUNK_SIZE: int = int(os.getenv('CHUNK_SIZE', 2))  # Process video frames in small chunks for low-memory systems
+    WORKERS: int = int(os.getenv('WORKERS', 1))  # Single worker to save RAM
+    TIMEOUT: int = int(os.getenv('TIMEOUT', 120))  # 2-minute timeout
+    DISABLE_GPU: bool = os.getenv('DISABLE_GPU', 'true').lower() == 'true'
+    CHUNK_SIZE: int = int(os.getenv('CHUNK_SIZE', 1))  # Process 1 frame at a time
 
     # Model Configuration
     MODEL_PATH: str = os.getenv('MODEL_PATH', 'models/gait_predict_model_v_1.pth')
-    NUM_FRAMES: int = int(os.getenv('NUM_FRAMES', 8))  # Reduced from 16 to 8 for faster processing
-    FRAME_SIZE: int = int(os.getenv('FRAME_SIZE', 224))
+    NUM_FRAMES: int = int(os.getenv('NUM_FRAMES', 4))  # Ultra-minimal: 4 frames
+    FRAME_SIZE: int = int(os.getenv('FRAME_SIZE', 160))  # Reduced from 224 to 160
     # Determine device without crashing if torch isn't importable or fails.
     if _TORCH_AVAILABLE:
         DEVICE: str = 'cuda' if torch.cuda.is_available() else 'cpu'

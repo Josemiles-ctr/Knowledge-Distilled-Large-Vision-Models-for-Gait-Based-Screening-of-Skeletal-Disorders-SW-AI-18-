@@ -169,30 +169,6 @@ async def predict(video: UploadFile, clinical_condition: str = Form(...)):
         if 'video_path' in locals() and os.path.exists(video_path):
             os.remove(video_path)
 
-@router.get("/conditions")
-async def get_conditions():
-    """Get available clinical conditions and their descriptions."""
-    return JSONResponse({
-        "conditions": clinical_descriptions
-    })
-
-
-@router.get("/test-model-load")
-async def test_model_load():
-    """Test endpoint: attempt to load model and return status."""
-    try:
-        logger.info("Test: Attempting to load model...")
-        _ensure_model_loaded()
-        logger.info("Test: Model loaded successfully")
-        return JSONResponse({"status": "model loaded", "ready": MODEL_READY})
-    except Exception as e:
-        logger.error(f"Test: Model load failed: {str(e)}", exc_info=True)
-        return JSONResponse(
-            {"status": "model load failed", "error": str(e)},
-            status_code=500
-        )
-
-
 @router.get("/health")
 async def health_check():
     """Simple health check to indicate app is running."""
@@ -202,27 +178,21 @@ async def health_check():
 @router.get("/ready")
 async def readiness_check():
     """Readiness probe: returns 200 when model is loaded, 503 otherwise."""
+    # Trigger lazy loading on readiness check
+    try:
+        _ensure_model_loaded()
+    except:
+        pass
+    
     if MODEL_READY:
         return JSONResponse({"ready": True})
     else:
         return JSONResponse({"ready": False, "reason": "model not loaded"}, status_code=503)
 
 
-@router.post("/predict-mock")
-async def predict_mock(video: UploadFile, clinical_condition: str = Form(...)):
-    """Mock prediction endpoint for testing (returns hardcoded response)."""
-    logger.info(f"Mock prediction called with video: {video.filename}, condition: {clinical_condition}")
-    return {
-        "predicted_class": "KOA_Mild",
-        "probabilities": {
-            "Normal": 0.05,
-            "KOA_Early": 0.1,
-            "KOA_Mild": 0.6,
-            "KOA_Severe": 0.15,
-            "PD_Early": 0.03,
-            "PD_Mild": 0.04,
-            "PD_Severe": 0.01,
-            "Disabled_Assistive": 0.01,
-            "Disabled_NonAssistive": 0.01
-        }
-    }
+@router.get("/conditions")
+async def list_conditions():
+    """List available clinical conditions and their descriptions."""
+    return JSONResponse({
+        "conditions": clinical_descriptions
+    })
