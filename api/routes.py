@@ -38,14 +38,17 @@ def _ensure_model_loaded():
     if MODEL_READY or (embedder is not None and model is not None):
         return
     try:
+        logger.info("Initializing embedder...")
         embedder = ClinicalEmbedder()
+        logger.info("Embedder initialized. Loading model...")
         model = load_student_model(num_classes=len(class_mapping))
+        logger.info("Model loaded successfully")
         MODEL_READY = True
         logger.info("Model and embedder initialized successfully")
     except Exception as e:
         MODEL_READY = False
-        logger.error(f"Error initializing model: {str(e)}")
-        raise
+        logger.error(f"Error initializing model: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Model initialization failed: {str(e)}")
 
 @router.post("/predict", response_model=Dict[str, Optional[Dict[str, float] | str]])
 async def predict(video: UploadFile, clinical_condition: str = Form(...)):

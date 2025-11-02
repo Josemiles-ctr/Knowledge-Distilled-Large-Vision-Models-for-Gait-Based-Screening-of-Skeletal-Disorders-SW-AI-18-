@@ -32,18 +32,9 @@ app.add_middleware(
 # Include API routes (health, ready, predict, conditions)
 app.include_router(router)
 
-# Initialize model on startup (non-blocking)
-@app.on_event("startup")
-async def startup_event():
-    """Load model and embedder on application startup."""
-    logger.info("Starting up GaitLab application...")
-    try:
-        from api.routes import _ensure_model_loaded
-        _ensure_model_loaded()
-        logger.info("Model and embedder initialized at startup")
-    except Exception as e:
-        logger.error(f"Warning: Model initialization failed at startup: {str(e)}")
-        logger.info("Continuing without model; will attempt lazy loading on first request")
+# Note: Model initialization is deferred to first request (lazy loading)
+# to avoid Render startup timeouts. The _ensure_model_loaded() is called
+# on first /predict request in api/routes.py.
 
 @app.get("/")
 async def root():
