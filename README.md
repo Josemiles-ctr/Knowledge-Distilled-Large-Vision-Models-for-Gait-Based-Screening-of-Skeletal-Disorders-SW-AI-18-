@@ -1,167 +1,112 @@
-# GaitLab - Gait Analysis ML Model Server
+---
+title: GaitLab - Clinical Gait Analysis
+emoji: 🚶
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_version: 4.44.0
+app_file: app.py
+pinned: false
+license: mit
+---
 
-A FastAPI-based REST API server for gait analysis using deep learning models to classify various gait conditions.
+# 🚶 GaitLab: AI-Powered Clinical Gait Analysis
 
-## Features
+An AI-powered system for analyzing gait patterns from video to detect various clinical conditions including knee osteoarthritis, Parkinson's disease, and other mobility disorders.
 
-- **FastAPI REST API** for video-based gait analysis
-- **Pre-trained PyTorch model** for gait condition classification
-- **Docker containerization** for easy deployment
-- **Automated CI/CD** via GitHub Actions to Docker Hub
-- Supports gait conditions: Normal, Early/Mild/Severe KOA, Early/Mild/Severe PD, Disabled (assistive/non-assistive)
+## 🎯 Features
 
-## Project Structure
+- **Video-based Analysis**: Upload gait videos for automated analysis
+- **Multi-condition Detection**: Identifies 9 different gait patterns
+- **Clinical Context**: Incorporates clinical descriptions for more accurate predictions
+- **Real-time Inference**: Fast predictions using optimized deep learning model
 
+## 🏥 Supported Conditions
+
+1. **Normal Gait**: Symmetrical, balanced walking pattern
+2. **Knee Osteoarthritis** (KOA):
+   - Early stage with mild gait modifications
+   - Mild stage with asymmetric weight bearing
+   - Severe stage with significant antalgic gait
+3. **Parkinson's Disease** (PD):
+   - Early stage with subtle gait changes
+   - Mild stage with festinating gait
+   - Severe stage with freezing of gait
+4. **Disabled Gait**:
+   - With assistive devices
+   - Without assistive devices
+
+## 🔬 Model Architecture
+
+- **Type**: Knowledge-distilled 3D CNN with clinical text fusion
+- **Input**: 8 video frames (224×224) + 384-dim clinical embedding
+- **Output**: 9-class probability distribution
+- **Parameters**: ~50M (student model)
+- **Inference**: CPU/GPU optimized
+
+## 📊 Performance
+
+The model was trained using knowledge distillation from a larger vision-language model and achieves competitive accuracy on clinical gait datasets.
+
+## 🚀 Usage
+
+1. Upload a gait video (MP4 format recommended)
+2. Provide a clinical description of the observed gait pattern
+3. Click "Analyze Gait" to get predictions
+4. Review the predicted condition and confidence scores
+
+## 🛠️ Technical Details
+
+### Model Components
+
+- **Visual Encoder**: 3D CNN for spatiotemporal feature extraction
+- **Clinical Embedder**: Hash-based text embedding (384-dim)
+- **Fusion Network**: Concatenation + MLP classifier
+
+### Video Processing
+
+- Samples 8 frames uniformly from input video
+- Resizes to 224×224 pixels
+- Applies ImageNet normalization
+- Processes in chunks for memory efficiency
+
+## 📝 Citation
+
+If you use this work, please cite:
+
+```bibtex
+@misc{gaitlab2024,
+  title={Knowledge-Distilled Large Vision Models for Gait-Based Screening of Skeletal Disorders},
+  author={Joseph Otai},
+  year={2024},
+  publisher={Hugging Face},
+  url={https://huggingface.co/spaces/YOUR_USERNAME/gaitlab}
+}
 ```
-GaitLab/
-├── app/                    # FastAPI application
-│   ├── config.py          # Configuration
-│   └── main.py            # API routes and app setup
-├── models/                # Model artifacts and utilities
-│   ├── class_mapping.py   # Clinical descriptions and class indices
-│   ├── model.py           # Model architecture
-│   ├── student_model.py   # Student model (knowledge distillation)
-│   ├── load_model.py      # Model loading utilities
-│   └── gait_predict_model_v_1.pth  # Pre-trained model
-├── scripts/               # Utility scripts
-│   ├── download_model.sh  # Download model at container startup
-│   ├── build_and_push_image.sh     # Build Docker image locally
-│   ├── tag_and_push_image.sh       # Tag and push to registry
-│   └── local_smoke_test.sh         # Local integration tests
-├── utils/                 # Utility modules
-│   ├── clinical_utils.py  # Clinical classification logic
-│   └── video_utils.py     # Video processing utilities
-├── main.py                # Root entry point for Render/direct runs
-├── requirements.txt       # Python dependencies
-├── Dockerfile             # Production Docker image definition
-├── .github/workflows/     # CI/CD workflows
-│   └── docker-publish.yml # Automated build and push to Docker Hub
-└── README.md              # This file
-```
 
-## Quick Start
+## 📄 License
 
-### Local Development
+MIT License
+
+## 🤝 Acknowledgments
+
+Built using:
+- PyTorch for deep learning
+- Gradio for the web interface
+- Hugging Face Spaces for deployment
+
+---
+
+## Local Development
+
+If you want to run this locally:
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the server
-uvicorn main:app --host 0.0.0.0 --port 8000
+# Run the Gradio app
+python app.py
 ```
 
-### API Endpoints
-
-- **`GET /health`** – Health check (returns 200 OK)
-- **`GET /ready`** – Readiness check (model loaded; returns 200 OK)
-- **`POST /predict`** – Predict gait condition from video
-  - Form data: `video` (file), `clinical_condition` (string, optional)
-  - Returns: JSON with predicted condition and confidence scores
-
-### Example Prediction Request
-
-```bash
-curl -X POST http://localhost:8000/predict \
-  -F "video=@sample_video.mp4" \
-  -F "clinical_condition=normal"
-```
-
-## Docker Deployment
-
-### Build Locally
-
-```bash
-docker build -t josemiles/gaitanalysis:latest .
-```
-
-### Run Locally
-
-```bash
-docker run -d -p 8000:8000 josemiles/gaitanalysis:latest
-```
-
-### Push to Docker Hub
-
-Requires Docker Hub credentials and access token. First, log in:
-
-```bash
-echo "<DOCKER_HUB_TOKEN>" | docker login --username josemiles --password-stdin
-```
-
-Then push:
-
-```bash
-docker push josemiles/gaitanalysis:latest
-```
-
-## Automated CI/CD with GitHub Actions
-
-The project includes a GitHub Actions workflow (`.github/workflows/docker-publish.yml`) that:
-- Builds the Docker image on every push to `main`
-- Pushes the image to Docker Hub as `docker.io/josemiles/gaitanalysis:latest`
-- Tags images with both `latest` and the git commit SHA
-
-### Setup
-
-1. Add GitHub Secrets to your repository:
-   - `DOCKERHUB_USERNAME` = your Docker Hub username
-   - `DOCKERHUB_TOKEN` = your Docker Hub access token (create in Account Settings → Security)
-
-2. Commit and push to `main` to trigger the workflow.
-
-3. Monitor the build in the **Actions** tab of your GitHub repository.
-
-## Deployment on Render
-
-See [`DEPLOY_ON_RENDER.md`](DEPLOY_ON_RENDER.md) for step-by-step Render deployment instructions.
-
-### Environment Variables
-
-- `PORT` – Port to bind (default: 8000)
-- `MODEL_PATH` – Path to model file (default: `/app/models/gait_predict_model_v_1.pth`)
-- `MODEL_URL` – Optional: URL to download model at startup (if not baked in image)
-
-## Testing
-
-Run the smoke test locally (requires Docker):
-
-```bash
-IMAGE=josemiles/gaitanalysis:latest ./scripts/local_smoke_test.sh
-```
-
-This will:
-- Start the container
-- Test `/health` and `/ready` endpoints
-- Send a test video to `/predict` and save the response
-
-## Model Information
-
-- **Model Type**: PyTorch CNN (ResNet-based)
-- **Input**: Video file (MP4)
-- **Output**: Gait condition classification with confidence scores
-- **Classes**: Normal, KOA_Early, KOA_Mild, KOA_Severe, PD_Early, PD_Mild, PD_Severe, Disabled_Assistive, Disabled_NonAssistive
-
-See `models/class_mapping.py` for clinical descriptions of each class.
-
-## Requirements
-
-- Python 3.11+
-- PyTorch
-- FastAPI
-- OpenCV (cv2)
-- FFmpeg
-
-See `requirements.txt` for full list.
-
-## License
-
-[Add your license information here]
-
-## Contributing
-
-[Add contribution guidelines if applicable]
-
-## Support
-
-For issues or questions, please open an issue on the GitHub repository.
+The app will be available at `http://localhost:7860`

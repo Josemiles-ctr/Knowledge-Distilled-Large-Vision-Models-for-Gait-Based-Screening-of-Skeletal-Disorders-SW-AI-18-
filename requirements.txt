@@ -5,6 +5,9 @@ python-multipart==0.0.20
 pydantic==2.12.3
 pydantic-settings==2.11.0
 
+# Gradio UI for Hugging Face Spaces
+gradio>=4.44.0
+
 # ML Core (minimal)
 # NOTE: torch and torchvision are installed as CPU-only wheels in the Dockerfile
 transformers==4.35.2

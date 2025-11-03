@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="GaitLab - Clinical Gait Analysis API",
+ 1   title="GaitLab - Clinical Gait Analysis API",
     description="FastAPI server for video-based gait analysis using deep learning models",
     version="1.0.0",
     docs_url="/docs",
